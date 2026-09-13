@@ -1,8 +1,8 @@
-# Copyright 1999-2025 Gentoo Authors
+# Copyright 1999-2026 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
-PYTHON_COMPAT=( python3_{11..14} )
+PYTHON_COMPAT=( python3_{12..14} )
 inherit gnome.org gnome2-utils meson python-any-r1 vala xdg
 
 DESCRIPTION="Simple document scanning utility"
@@ -10,13 +10,13 @@ HOMEPAGE="https://gitlab.gnome.org/GNOME/simple-scan"
 
 LICENSE="GPL-3+"
 SLOT="0"
-KEYWORDS="amd64 ~arm ~arm64 ppc ppc64 ~riscv x86"
+KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~ppc64 ~riscv ~x86"
 IUSE="colord webp"
 
 DEPEND="
-	>=dev-libs/glib-2.38:2
-	>=gui-libs/gtk-4.10.0:4
-	>=gui-libs/libadwaita-1.2.0:1
+	>=dev-libs/glib-2.76:2
+	>=gui-libs/gtk-4.15.2:4
+	>=gui-libs/libadwaita-1.8.0:1
 	>=virtual/zlib-1.2.3.1:=
 	x11-libs/cairo
 	x11-libs/gdk-pixbuf:2
@@ -42,7 +42,7 @@ BDEPEND="
 
 PATCHES=(
 	# Add control for optional dependencies
-	"${FILESDIR}"/"${PV}"-add-control-optional-deps.patch
+	"${FILESDIR}"/46.0-add-control-optional-deps.patch
 )
 
 src_prepare() {

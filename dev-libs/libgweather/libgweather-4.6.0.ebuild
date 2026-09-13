@@ -1,8 +1,8 @@
-# Copyright 1999-2025 Gentoo Authors
+# Copyright 1999-2026 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
-PYTHON_COMPAT=( python3_{10..13} )
+PYTHON_COMPAT=( python3_{12..14} )
 
 inherit gnome.org gnome2-utils meson python-any-r1 vala xdg
 
@@ -11,15 +11,14 @@ HOMEPAGE="https://gitlab.gnome.org/GNOME/libgweather"
 
 LICENSE="GPL-2+"
 SLOT="4/4-0" # subslot = 4-(libgweather-4 soname suffix)
-
+KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~loong ~ppc ~ppc64 ~riscv ~sparc ~x86"
 IUSE="gtk-doc +introspection test +vala"
-RESTRICT="!test? ( test )"
 REQUIRED_USE="
 	vala? ( introspection )
 	gtk-doc? ( introspection )
 "
 
-KEYWORDS="~alpha amd64 ~arm arm64 ~loong ~ppc ~ppc64 ~riscv ~sparc x86"
+RESTRICT="!test? ( test )"
 
 RDEPEND="
 	>=dev-libs/glib-2.68.0:2
@@ -28,9 +27,11 @@ RDEPEND="
 	>=dev-libs/libxml2-2.6.0:2=
 	dev-libs/json-glib
 	introspection? ( >=dev-libs/gobject-introspection-1.82.0-r2:= )
+	dev-libs/gweather-locations
 "
 DEPEND="${RDEPEND}"
 BDEPEND="
+	>=dev-build/meson-1.5
 	dev-util/glib-utils
 	gtk-doc? ( >=dev-util/gi-docgen-2021.6 )
 	>=sys-devel/gettext-0.19.8
@@ -71,7 +72,6 @@ src_configure() {
 		$(meson_use gtk-doc gtk_doc)
 		$(meson_use introspection)
 		$(meson_use test tests)
-		-Dsoup2=false
 		--native-file "${native_file}"
 	)
 	meson_src_configure

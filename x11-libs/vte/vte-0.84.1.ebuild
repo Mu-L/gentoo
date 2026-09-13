@@ -2,7 +2,7 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
-PYTHON_COMPAT=( python3_{11..14} )
+PYTHON_COMPAT=( python3_{12..14} )
 
 inherit flag-o-matic gnome.org meson python-any-r1 vala xdg
 
@@ -11,9 +11,9 @@ HOMEPAGE="https://gitlab.gnome.org/GNOME/vte"
 
 # Once SIXEL support ships (0.66 or later), might need xterm license (but code might be considered upgraded to LGPL-3+)
 LICENSE="LGPL-3+ GPL-3+"
-SLOT="2.91-gtk4" # vte_api_version + "-gtk4" in meson.build
 
-KEYWORDS="amd64 ~arm arm64 ~loong ~ppc ~ppc64 ~riscv ~sparc ~x86"
+SLOT="2.91"      # vte_api_version in meson.build
+KEYWORDS="~amd64 ~arm ~arm64 ~loong ~ppc ~ppc64 ~riscv ~sparc ~x86"
 IUSE="X +crypt debug gtk-doc +icu +introspection systemd +vala wayland"
 REQUIRED_USE="
 	gtk-doc? ( introspection )
@@ -21,7 +21,7 @@ REQUIRED_USE="
 "
 
 DEPEND="
-	>=gui-libs/gtk-4.14:4[X?,introspection?,wayland?]
+	>=x11-libs/gtk+-3.24.22:3[X?,introspection?,wayland?]
 	>=x11-libs/cairo-1.0
 	>=dev-libs/libfmt-11.0.0
 	dev-cpp/fast_float
@@ -55,15 +55,15 @@ src_prepare() {
 	use vala && vala_setup
 	xdg_environment_reset
 
-	use elibc_musl && eapply "${FILESDIR}"/${PN}-0.66.2-musl-W_EXITCODE.patch
+	use elibc_musl && eapply "${FILESDIR}"/${PN}-0.84.0-musl-W_EXITCODE.patch
 
 	# -Ddebug option enables various debug support via VTE_DEBUG, but also ggdb3; strip the latter
 	sed -e '/ggdb3/d' -i meson.build || die
-	sed -i 's/vte_gettext_domain = vte_api_name/vte_gettext_domain = vte_gtk4_api_name/' meson.build || die
+	sed -i 's/vte_gettext_domain = vte_api_name/vte_gettext_domain = vte_gtk3_api_name/' meson.build || die
 }
 
 src_configure() {
-	# Upstream don't support LTO & error out on it in meson.build (bug #926156)
+	# Upstream don't support LTO & error out on it in meson.build
 	filter-lto
 
 	use X || append-flags -DGENTOO_GTK_HIDE_X11
@@ -71,15 +71,15 @@ src_configure() {
 
 	local emesonargs=(
 		-Da11y=true
-		#-Dapp-hidden=true
+		-Dapp-hidden=true
 		$(meson_use debug)
 		$(meson_use gtk-doc docs)
 		$(meson_use introspection gir)
 		-Dfribidi=true # pulled in by pango anyhow
 		-Dglade=true
 		$(meson_use crypt gnutls)
-		-Dgtk3=false
-		-Dgtk4=true
+		-Dgtk3=true
+		-Dgtk4=false
 		$(meson_use icu)
 		$(meson_use systemd _systemd)
 		$(meson_use vala vapi)
@@ -89,7 +89,7 @@ src_configure() {
 
 src_install() {
 	# not meson_src_install because this would include einstalldocs, which
-	# would result in file collisions with x11-libs/vte
+	# would result in file collisions with gui-libs/vte
 	meson_install
 
 	# Remove files that are provided by gui-libs/vte-common
@@ -101,6 +101,6 @@ src_install() {
 	fi
 	if use gtk-doc; then
 		mkdir -p "${ED}"/usr/share/gtk-doc/ || die
-		mv "${ED}"/usr/share/doc/vte-${SLOT} "${ED}"/usr/share/gtk-doc/ || die
+		mv "${ED}"/usr/share/doc/vte-${SLOT} "${ED}"/usr/share/gtk-doc/vte-${SLOT}-gtk3 || die
 	fi
 }

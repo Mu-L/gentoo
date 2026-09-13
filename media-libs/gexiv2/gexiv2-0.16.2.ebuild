@@ -1,9 +1,9 @@
-# Copyright 1999-2025 Gentoo Authors
+# Copyright 1999-2026 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
 
-PYTHON_COMPAT=( python3_{11..14} )
+PYTHON_COMPAT=( python3_{12..14} )
 
 inherit gnome.org meson python-r1 vala
 
@@ -14,11 +14,11 @@ if [[ ${PV} == 9999 ]]; then
 	EGIT_REPO_URI="https://gitlab.gnome.org/GNOME/gexiv2.git"
 	inherit git-r3
 else
-	KEYWORDS="~alpha amd64 arm arm64 ~hppa ~loong ppc ppc64 ~riscv ~sparc x86"
+	KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~loong ~ppc ~ppc64 ~riscv ~sparc ~x86"
 fi
 
 LICENSE="LGPL-2.1+ GPL-2+"
-SLOT="0"
+SLOT="0.16/4"
 IUSE="gtk-doc +introspection python test +vala"
 REQUIRED_USE="
 	python? ( introspection ${PYTHON_REQUIRED_USE} )
@@ -28,7 +28,7 @@ REQUIRED_USE="
 RESTRICT="!test? ( test )"
 
 RDEPEND="
-	>=media-gfx/exiv2-0.26:=
+	>=media-gfx/exiv2-0.28:=
 	>=dev-libs/glib-2.46.0:2
 	introspection? ( >=dev-libs/gobject-introspection-1.82.0-r2:= )
 	python? (
@@ -38,9 +38,11 @@ RDEPEND="
 "
 DEPEND="${RDEPEND}"
 BDEPEND="
+	>=dev-build/meson-1.4
 	dev-util/glib-utils
 	gtk-doc? (
 		dev-util/gtk-doc
+		introspection? ( >=dev-util/gi-docgen-2021.1 )
 		app-text/docbook-xml-dtd:4.3
 	)
 	test? ( media-gfx/exiv2[xmp] )

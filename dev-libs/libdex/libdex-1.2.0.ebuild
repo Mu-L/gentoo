@@ -1,16 +1,16 @@
-# Copyright 1999-2025 Gentoo Authors
+# Copyright 1999-2026 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
 
-inherit gnome.org linux-info meson vala
+inherit gnome.org linux-info meson vala virtualx
 
 DESCRIPTION="Dex provides Future-based programming for GLib-based applications"
 HOMEPAGE="https://gitlab.gnome.org/GNOME/libdex"
 
 LICENSE="LGPL-2.1+"
 SLOT="0/1"
-KEYWORDS="amd64 ~arm64 ~loong x86"
+KEYWORDS="~amd64 ~arm64 ~loong ~x86"
 
 IUSE="+eventfd gtk-doc +introspection +liburing sysprof test vala"
 REQUIRED_USE="
@@ -20,7 +20,7 @@ REQUIRED_USE="
 RESTRICT="!test? ( test )"
 
 RDEPEND="
-	>=dev-libs/glib-2.68:2
+	>=dev-libs/glib-2.87:2
 	liburing? ( >=sys-libs/liburing-0.7:= )
 	introspection? ( >=dev-libs/gobject-introspection-1.82.0-r2:= )
 	sysprof? ( dev-util/sysprof-capture:4 )
@@ -57,6 +57,7 @@ src_configure() {
 		$(meson_use test tests)
 		$(meson_feature liburing)
 		$(meson_feature eventfd)
+		-Dgdbus=enabled
 	)
 	meson_src_configure
 }
@@ -68,4 +69,8 @@ src_install() {
 		mkdir -p "${ED}"/usr/share/gtk-doc/html/ || die
 		mv "${ED}"/usr/share/doc/${PN}-1 "${ED}"/usr/share/gtk-doc/html/ || die
 	fi
+}
+
+src_test() {
+	virtx dbus-run-session meson test -C "${BUILD_DIR}" --print-errorlogs || die
 }

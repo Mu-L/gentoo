@@ -1,9 +1,9 @@
-# Copyright 2025 Gentoo Authors
+# Copyright 2025-2026 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
 
-inherit edo flag-o-matic multiprocessing qmake-utils toolchain-funcs xdg
+inherit edo flag-o-matic multiprocessing optfeature qmake-utils toolchain-funcs xdg
 
 DESCRIPTION="Cloth patternmaking software"
 HOMEPAGE="https://smart-pattern.com.ua/"
@@ -12,9 +12,9 @@ S="${WORKDIR}/${PN}-v${PV}"
 
 LICENSE="GPL-3"
 SLOT="0"
-KEYWORDS="amd64 ~x86"
+KEYWORDS="~amd64 ~x86"
 IUSE="test"
-RESTRICT="test"
+RESTRICT="!test? ( test )"
 
 DEPEND="
 	dev-libs/xerces-c:=
@@ -22,18 +22,12 @@ DEPEND="
 	dev-qt/qtsvg:6
 	!sci-biology/tree-puzzle
 "
-RDEPEND="${DEPEND}
-	app-text/poppler[utils]
-"
+RDEPEND="${DEPEND}"
 BDEPEND="
 	dev-build/meson-format-array
 	dev-qt/qttools:6[linguist]
 	dev-util/qbs
 "
-
-PATCHES=(
-	"${FILESDIR}"/${PN}-1.0.0-fix_desktop.patch
-)
 
 qbs_format_flags() {
 	meson-format-array "${@}" || die
@@ -68,7 +62,6 @@ src_configure() {
 	qbs_config stripPath "$(tc-getSTRIP)"
 
 	# define global options
-	qbs_config preferences.jobs "$(get_makeopts_jobs)"
 	qbs_config qbs.installPrefix "${EPREFIX}/usr"
 	qbs_config qbs.sysroot "${ESYSROOT}"
 
@@ -79,20 +72,27 @@ src_configure() {
 	qbs_config qbs.optimization ""
 
 	# define package options
-	qbs_config buildconfig.enableCcache false
-	qbs_config buildconfig.enablePCH false # fail w/ clang
-	qbs_config buildconfig.enableUnitTests $(usex test true false)
-	qbs_config buildconfig.enableRPath false
-	qbs_config buildconfig.installLibraryPath "$(get_libdir)"
-	qbs_config buildconfig.libDirName "$(get_libdir)"
-	qbs_config buildconfig.treatWarningsAsErrors false
+	local my_opts=(
+		enableCcache:false
+		enablePCH:false
+		enableUnitTests:$(usex test true false)
+		enableRPath:false
+		installLibraryPath:"$(get_libdir)"
+		libDirName:"$(get_libdir)"
+		treatWarningsAsErrors:false
+	)
 
 	# used by all phases
 	qbsargs=(
 		--file ${PN}.qbs
 		config:release
 		profile:gentoo
+		${my_opts[@]/#/modules.buildconfig.}
 	)
+
+	# export now for src_test
+	local -x LD_LIBRARY_PATH+=":${S}/release/install-root${EPREFIX}/usr/$(get_libdir)/"
+	local -x QT_QPA_PLATFORM=offscreen
 
 	edo qbs resolve "${qbsargs[@]}" --force-probe-execution
 
@@ -103,20 +103,32 @@ src_configure() {
 }
 
 src_compile() {
-	edo qbs build "${qbsargs[@]}" --no-install
+	edo qbs build "${qbsargs[@]}" --jobs $(get_makeopts_jobs) --no-install
 }
 
 src_test() {
-	# It fails in the build env. Only parserTest passes if launched manually.
 	edo qbs -p autotest-runner profile:gentoo config:release
 }
 
 src_install() {
 	edo qbs install "${qbsargs[@]}" --no-build --install-root "${D}"
 
+	if use test; then
+		rm "${ED}"/usr/bin/*Test.debug || die
+	fi
+
+	insinto /usr/share/${PN}
+	doins -r "${S}"/src/app/share/{collection,tables}
+
 	dodoc AUTHORS.txt ChangeLog.txt README.md
 
 	doman dist/debian/${PN}.1
 	doman dist/debian/puzzle.1
 	doman dist/debian/tape.1
+}
+
+pkg_postinst() {
+	xdg_pkg_postinst
+
+	optfeature "PDF to PS conversion" app-text/poppler[utils]
 }

@@ -10,7 +10,7 @@ HOMEPAGE="https://apps.gnome.org/Contacts/"
 
 LICENSE="GPL-2+"
 SLOT="0"
-KEYWORDS="~amd64 ~arm ~arm64 ~loong ~ppc64 ~riscv ~x86"
+KEYWORDS="~amd64 ~arm ~arm64 ~riscv ~x86"
 IUSE="+gnome-online-accounts"
 
 VALA_DEPEND="
@@ -18,7 +18,7 @@ VALA_DEPEND="
 	>=dev-libs/gobject-introspection-1.82.0-r2
 	dev-libs/folks[vala(+)]
 	gnome-online-accounts? ( net-libs/gnome-online-accounts[vala] )
-	<gnome-extra/evolution-data-server-3.60[gtk,vala]
+	gnome-extra/evolution-data-server[gtk,vala]
 	>=dev-libs/libportal-0.7:=[gtk,vala]
 "
 RDEPEND="
@@ -27,7 +27,8 @@ RDEPEND="
 	>=dev-libs/glib-2.64:2
 	>=gui-libs/gtk-4.15.3:4
 	>=gui-libs/libadwaita-1.8_alpha:1
-	>=gnome-extra/evolution-data-server-3.42:=[gnome-online-accounts?]
+	>=media-libs/glycin-2.0[gtk,vala]
+	>=gnome-extra/evolution-data-server-3.60:=[gnome-online-accounts?]
 	>=dev-libs/libportal-0.7:=
 	>=media-libs/gstreamer-1
 	>=media-gfx/qrencode-4.1.1:=

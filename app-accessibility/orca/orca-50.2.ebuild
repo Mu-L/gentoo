@@ -2,23 +2,24 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
-PYTHON_COMPAT=( python3_{11..14} )
 
-inherit gnome2 meson python-single-r1
+PYTHON_COMPAT=( python3_{12..14} )
+
+inherit gnome2 meson python-single-r1 virtualx
 
 DESCRIPTION="Extensible screen reader that provides access to the desktop"
 HOMEPAGE="https://orca.gnome.org/"
 
 LICENSE="LGPL-2.1+ CC-BY-SA-3.0"
 SLOT="0"
-KEYWORDS="~amd64 ~arm64 ~loong ~ppc64 ~riscv ~sparc"
+KEYWORDS="~amd64 ~arm64 ~loong ~ppc64 ~riscv ~sparc ~x86"
 
 IUSE="+braille test"
 REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 RESTRICT="!test? ( test )"
 
 DEPEND="${PYTHON_DEPS}
-	>=app-accessibility/at-spi2-core-2.50:2[introspection]
+	>=app-accessibility/at-spi2-core-2.56.0[introspection]
 	>=dev-libs/glib-2.28:2
 	media-libs/gstreamer:1.0[introspection]
 	>=x11-libs/gtk+-3.6.2:3[introspection]
@@ -64,11 +65,21 @@ src_configure() {
 
 src_test() {
 	# test_structural_navigator needs more time
-	meson_src_test --timeout-multiplier=10
+	virtx meson_src_test --timeout-multiplier=10
 }
 
 src_install() {
 	meson_src_install
 	python_fix_shebang "${ED}"
 	python_optimize
+}
+
+pkg_postinst(){
+	gnome2_schemas_update
+	xdg_icon_cache_update
+}
+
+pkg_postrm(){
+	gnome2_schemas_update
+	xdg_icon_cache_update
 }
